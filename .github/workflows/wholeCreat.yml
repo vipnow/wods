@@ -203,6 +203,7 @@ jobs:
       - name: Commit and push result changes
         run: |
           git add result/*
+          git add .
           git status
           git commit -m "Update result files" || echo "No changes to commit"
           git pull origin main --rebase
