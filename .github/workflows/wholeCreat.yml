@@ -252,6 +252,9 @@ jobs:
         env:
           PAT: ${{ secrets.GITHUBS_TOKEN }}
 
+      - name: List root only files
+        run: ls -l | grep -v '/$'
+      
       - name: Delete replace.php
         run: |
           if [ -f "replace.php" ]; then
