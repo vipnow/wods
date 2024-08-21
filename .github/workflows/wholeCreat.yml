@@ -248,3 +248,20 @@ jobs:
           fi
         env:
           PAT: ${{ secrets.GITHUBS_TOKEN }}
+
+      - name: Delete replace.php
+        run: |
+          if [ -f "replace.php" ]; then
+            # 删除文件
+            git rm replace.php
+            # 提交更改
+            git commit -m "Delete replace.php file" || echo "No changes to commit"
+            # 拉取最新更改并进行 rebase
+            git pull --rebase
+            # 推送更改
+            git push
+          else
+            echo "replace.php file not found, skipping deletion"
+          fi
+        env:
+          PAT: ${{ secrets.GITHUBS_TOKEN }}
