@@ -40,7 +40,44 @@ jobs:
         run: mkdir -p ip
 
 
+      - name: Create template directory
+        run: mkdir -p template
+
+      - name: List template directory
+        run: ls -lR template
       
+      - name: Download files to template directory
+        run: |
+          # 定义变量
+          REPO="welvico/wods"
+          BRANCH="main"
+          DIR="template"
+          API_URL="https://api.github.com/repos/$REPO/contents/$DIR?ref=$BRANCH"
+
+          # 从 GitHub API 获取文件列表
+          curl -s $API_URL | jq -r '.[] | select(.type=="file") | .download_url' | while read -r file_url; do
+            # 提取文件名并下载
+            file_name=$(basename "$file_url")
+            curl -L -o "template/$file_name" "$file_url"
+          done
+
+      - name: Commit and push template changes
+        run: |
+          git add template/*
+          git status
+          git commit -m "Update template files" || echo "No changes to commit"
+          git pull origin main --rebase
+          git push
+        env:
+          PAT: ${{ secrets.GITHUBS_TOKEN }}
+
+      - name: List template files
+        run: |
+          find template -type f -name "*.txt" -print > template_files.txt
+          cat template_files.txt
+          
+      - name: Copy template/ACM_ip.txt to ip/ and rename it to ACM.txt
+        run: cp template/ACM_ip.txt ip/ACM.txt
         
       - name: Extract IPs from template files
         run: |
@@ -124,45 +161,6 @@ jobs:
       #- name: Copy ACM.txt to result
         #run: cp template/ACM.txt result/
      
-
-      - name: Create template directory
-        run: mkdir -p template
-
-      - name: List template directory
-        run: ls -lR template
-      
-      - name: Download files to template directory
-        run: |
-          # 定义变量
-          REPO="welvico/wods"
-          BRANCH="main"
-          DIR="template"
-          API_URL="https://api.github.com/repos/$REPO/contents/$DIR?ref=$BRANCH"
-
-          # 从 GitHub API 获取文件列表
-          curl -s $API_URL | jq -r '.[] | select(.type=="file") | .download_url' | while read -r file_url; do
-            # 提取文件名并下载
-            file_name=$(basename "$file_url")
-            curl -L -o "template/$file_name" "$file_url"
-          done
-
-      - name: Commit and push template changes
-        run: |
-          git add template/*
-          git status
-          git commit -m "Update template files" || echo "No changes to commit"
-          git pull origin main --rebase
-          git push
-        env:
-          PAT: ${{ secrets.GITHUBS_TOKEN }}
-
-      - name: List template files
-        run: |
-          find template -type f -name "*.txt" -print > template_files.txt
-          cat template_files.txt
-          
-      - name: Copy template/ACM_ip.txt to ip/ and rename it to ACM.txt
-        run: cp template/ACM_ip.txt ip/ACM.txt
       
  
       - name: Set up PHP
