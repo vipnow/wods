@@ -181,7 +181,7 @@ jobs:
           ls -R $GITHUB_WORKSPACE/result || echo "result directory is empty"
 
 
-      - name: 下载 PHP 脚本
+      - name: Download PHP Script
         run: |
           curl -o replace.php https://raw.githubusercontent.com/${{ secrets.ORIGIN_NAME }}/wods/main/replace.php
       
