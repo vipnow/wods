@@ -158,8 +158,8 @@ jobs:
       #- name: Copy ACM.txt to result
         #run: cp template/ACM.txt result/
 
-      #- name: List template directory
-        #run: ls -lR template
+      - name: List template directory
+        run: ls -lR template
         
       - name: Copy ACM_ip.txt to ip and rename it to ACM.txt
         run: cp template/ACM_ip.txt ip/ACM.txt
