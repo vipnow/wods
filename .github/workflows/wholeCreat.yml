@@ -75,7 +75,10 @@ jobs:
         run: |
           find template -type f -name "*.txt" -print > template_files.txt
           cat template_files.txt
-
+          
+      - name: Copy template/ACM_ip.txt to ip/ and rename it to ACM.txt
+        run: cp template/ACM_ip.txt ip/ACM.txt
+        
       - name: Extract IPs from template files
         run: |
           while IFS= read -r file; do
@@ -157,12 +160,8 @@ jobs:
 
       #- name: Copy ACM.txt to result
         #run: cp template/ACM.txt result/
-
-      - name: List template directory
-        run: ls -lR template
-        
-      - name: Copy ACM_ip.txt to ip and rename it to ACM.txt
-        run: cp template/ACM_ip.txt ip/ACM.txt
+     
+      
  
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
