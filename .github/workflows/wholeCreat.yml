@@ -5,7 +5,6 @@ on:
     #- cron: '30 21 * * *'  # 每天北京时间早上5点30分执行
   repository_dispatch:
     types: [trigger-wods]
-    
   workflow_dispatch:  # 手动触发
 
 permissions:
@@ -29,19 +28,16 @@ jobs:
             rm -rf ip/
             git rm -r --cached ip/
             git commit -m "Delete IP folder" || echo "No changes to commit"
-            git push
           else
             echo "ip/ directory not found, skipping deletion"
           fi
         env:
           PAT: ${{ secrets.GITHUBS_TOKEN }}
-               
-      - name: Create IP directory
-        run: mkdir -p ip
 
-
-      - name: Create template directory
-        run: mkdir -p template
+      - name: Create IP and Template directories
+        run: |
+          mkdir -p ip
+          mkdir -p template
 
       - name: List template directory
         run: ls -lR template
@@ -63,7 +59,7 @@ jobs:
 
       - name: Commit and push template changes
         run: |
-          git add template/*
+          git add template/
           git status
           git commit -m "Update template files" || echo "No changes to commit"
           git pull origin main --rebase
@@ -76,9 +72,14 @@ jobs:
           find template -type f -name "*.txt" -print > template_files.txt
           cat template_files.txt
           
-      - name: Copy template/ACM_ip.txt to ip/ and rename it to ACM.txt
-        run: cp template/ACM_ip.txt ip/ACM.txt
-        
+      - name: Copy and Rename Template File
+        run: |
+          if [ -f "template/ACM_ip.txt" ]; then
+            cp template/ACM_ip.txt ip/ACM.txt
+          else
+            echo "template/ACM_ip.txt not found, skipping copy"
+          fi
+
       - name: Extract IPs from template files
         run: |
           while IFS= read -r file; do
@@ -104,34 +105,25 @@ jobs:
             fi
           done < template_files.txt
 
-
       - name: Configure Git
-        env:
-          PAT: ${{ secrets.GITHUBS_TOKEN }}
         run: |
           git config --global user.email "actions@github.com"
           git config --global user.name "GitHub Actions"
-          
-      - name: Add files to Git
+
+      - name: Commit and push IP changes
         run: |
           git add ip/*.txt
           git add template/
-          
-      - name: Check Git status
-        run: |
           git status
-          
-      - name: Commit changes
-        run: |
-          git commit -m "Update IP files" || echo "Nothing to commit"
-          
-      - name: Push changes
-        run: |
-          git push origin HEAD || echo "Push failed"
+          git commit -m "Update IP files" || echo "No changes to commit"
+          git pull origin main --rebase
+          git push
+        env:
+          PAT: ${{ secrets.GITHUBS_TOKEN }}
 
   update_templates:
     runs-on: ubuntu-latest
-    needs: collect_ips  # 等待 collect_ips 完成后再执行
+    needs: collect_ips
 
     steps:
       - name: Checkout repository
@@ -148,8 +140,6 @@ jobs:
             rm -rf result/
             git rm -r --cached result/
             git commit -m "Delete Result folder" || echo "No changes to commit"
-            git pull --rebase
-            git push
           else
             echo "result/ directory not found, skipping deletion"
           fi
@@ -159,11 +149,6 @@ jobs:
       - name: Create Result directory
         run: mkdir -p result
 
-      #- name: Copy ACM.txt to result
-        #run: cp template/ACM.txt result/
-     
-      
- 
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
         with:
@@ -174,12 +159,11 @@ jobs:
           echo "Listing root directory"
           ls -R
           echo "Listing ip directory"
-          ls -R $GITHUB_WORKSPACE/ip
+          ls -R ip
           echo "Listing template directory"
-          ls -R $GITHUB_WORKSPACE/template
+          ls -R template
           echo "Listing result directory (should be empty initially)"
-          ls -R $GITHUB_WORKSPACE/result || echo "result directory is empty"
-
+          ls -R result || echo "result directory is empty"
 
       - name: Download PHP Script
         run: |
@@ -195,14 +179,13 @@ jobs:
           echo "Content of result/all.txt"
           cat result/all.txt
 
-      - name: Configure git
+      - name: Configure Git
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
 
       - name: Commit and push result changes
         run: |
-          #git add result/*
           git add .
           git status
           git commit -m "Update result files" || echo "No changes to commit"
@@ -211,21 +194,10 @@ jobs:
         env:
           PAT: ${{ secrets.GITHUBS_TOKEN }}
 
-      - name: Commit and push ip changes
-        run: |
-          git add ip/*
-          git status
-          git commit -m "Update ip files" || echo "No changes to commit"
-          git pull origin main --rebase
-          git push
-        env:
-          PAT: ${{ secrets.GITHUBS_TOKEN }}    
-
       - name: Access autoUpdate URL
         run: |
-          #curl -X GET ${{ secrets.AUTOUPDATE_URL }}
           curl -X GET "${{ secrets.AUTOUPDATE_URL }}?gh=${{ github.actor }}"
-        continue-on-error: false  # 如果curl失败，后续步骤将不会执行
+        continue-on-error: false
 
       - name: Delete Result Folder
         run: |
@@ -239,28 +211,24 @@ jobs:
             echo "result/ directory not found, skipping deletion"
           fi
         env:
-          PAT: ${{ secrets.GITHUBS_TOKEN }}  
-
+          PAT: ${{ secrets.GITHUBS_TOKEN }}
 
       - name: Delete Template Folder
         run: |
           if [ -d "template/" ]; then
-          rm -rf template/
-          git rm -r --cached template/
-          git commit -m "Delete Template folder" || echo "No changes to commit"
-          git pull --rebase
-          git push
+            rm -rf template/
+            git rm -r --cached template/
+            git commit -m "Delete Template folder" || echo "No changes to commit"
+            git pull --rebase
+            git push
           else
-          echo "template/ directory not found, skipping deletion"
+            echo "template/ directory not found, skipping deletion"
           fi
         env:
           PAT: ${{ secrets.GITHUBS_TOKEN }}
 
-      - name: Scan and delect replace.php
+      - name: Scan and delete replace.php
         run: |
-          ls -l | grep replace.php
-          git status
-          git ls-files | grep replace.php
           if [ -f "replace.php" ]; then
             git rm --force replace.php
             git commit -m "Delete replace.php file" || echo "No changes to commit"
