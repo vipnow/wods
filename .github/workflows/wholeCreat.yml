@@ -39,6 +39,16 @@ jobs:
       - name: Create IP directory
         run: mkdir -p ip
 
+
+      - name: Create directory
+        run: mkdir -p template
+      
+      - name: Download entire directory
+        run: |
+          wget -r -np -nH --cut-dirs=3 -R "index.html*" https://raw.githubusercontent.com/welvico/wods/main/template/ -P template/
+
+
+
       - name: List template files
         run: |
           find template -type f -name "*.txt" -print > template_files.txt
@@ -199,3 +209,18 @@ jobs:
           fi
         env:
           PAT: ${{ secrets.GITHUBS_TOKEN }}  
+
+
+      - name: Delete Template Folder
+        run: |
+          if [ -d "template/" ]; then
+          rm -rf template/
+          git rm -r --cached template/
+          git commit -m "Delete Template folder" || echo "No changes to commit"
+          git pull --rebase
+          git push
+          else
+          echo "template/ directory not found, skipping deletion"
+          fi
+        env:
+          PAT: ${{ secrets.GITHUBS_TOKEN }}
