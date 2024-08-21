@@ -43,9 +43,20 @@ jobs:
       - name: Create directory
         run: mkdir -p template
       
-      - name: Download entire directory
+      - name: 使用 GitHub API 下载文件
         run: |
-          wget -r -np -nH --cut-dirs=3 -R "index.html*" https://raw.githubusercontent.com/welvico/wods/main/template/ -P template/
+          # 定义变量
+          REPO="welvico/wods"
+          BRANCH="main"
+          DIR="template"
+          API_URL="https://api.github.com/repos/$REPO/contents/$DIR?ref=$BRANCH"
+
+          # 从 GitHub API 获取文件列表
+          curl -s $API_URL | jq -r '.[] | select(.type=="file") | .download_url' | while read -r file_url; do
+            # 提取文件名并下载
+            file_name=$(basename "$file_url")
+            curl -L -o "template/$file_name" "$file_url"
+          done
 
 
 
