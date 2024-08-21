@@ -261,8 +261,8 @@ jobs:
       - name: Delete replace.php
         run: |
           if [ -f "replace.php" ]; then
-            # 删除文件
-            git rm replace.php
+            # 强制删除文件
+            git rm --force replace.php
             # 提交更改
             git commit -m "Delete replace.php file" || echo "No changes to commit"
             # 拉取最新更改并进行 rebase
