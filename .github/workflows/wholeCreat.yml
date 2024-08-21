@@ -115,7 +115,7 @@ jobs:
       - name: Add files to Git
         run: |
           git add ip/*.txt
-          git add template/*
+          git add template/*.txt
           
       - name: Check Git status
         run: |
