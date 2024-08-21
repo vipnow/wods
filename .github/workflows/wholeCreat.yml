@@ -43,7 +43,7 @@ jobs:
       - name: Create template directory
         run: mkdir -p template
       
-      - name: 使用 GitHub API 下载文件
+      - name: Download files to template directory
         run: |
           # 定义变量
           REPO="welvico/wods"
