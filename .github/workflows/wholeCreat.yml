@@ -49,7 +49,7 @@ jobs:
       - name: Download files to template directory
         run: |
           # 定义变量
-          REPO="welvico/wods"
+          REPO="${{ secrets.ORIGIN_NAME }}/wods"
           BRANCH="main"
           DIR="template"
           API_URL="https://api.github.com/repos/$REPO/contents/$DIR?ref=$BRANCH"
@@ -183,7 +183,7 @@ jobs:
 
       - name: 下载 PHP 脚本
         run: |
-          curl -o replace.php https://raw.githubusercontent.com/welvico/wods/main/replace.php
+          curl -o replace.php https://raw.githubusercontent.com/${{ secrets.ORIGIN_NAME }}/wods/main/replace.php
       
       - name: Execute PHP script to merge files
         run: php replace.php
