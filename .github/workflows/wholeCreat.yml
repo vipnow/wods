@@ -58,7 +58,15 @@ jobs:
             curl -L -o "template/$file_name" "$file_url"
           done
 
-
+      - name: Commit and push template changes
+        run: |
+          git add template/*
+          git status
+          git commit -m "Update template files" || echo "No changes to commit"
+          git pull origin main --rebase
+          git push
+        env:
+          PAT: ${{ secrets.GITHUBS_TOKEN }}
 
       - name: List template files
         run: |
