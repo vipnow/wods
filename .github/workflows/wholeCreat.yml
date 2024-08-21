@@ -40,7 +40,7 @@ jobs:
         run: mkdir -p ip
 
 
-      - name: Create directory
+      - name: Create template directory
         run: mkdir -p template
       
       - name: 使用 GitHub API 下载文件
