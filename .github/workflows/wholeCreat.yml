@@ -11,7 +11,7 @@ permissions:
   contents: write
 
 jobs:
-  collect_ips:
+  process_files:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -20,7 +20,7 @@ jobs:
       - name: Set Git Identity
         run: |
           git config --global user.email "actions@github.com"
-          git config --global user.name "GitHub Actions"  
+          git config --global user.name "GitHub Actions"
 
       - name: Delete IP Folder
         run: |
@@ -41,18 +41,14 @@ jobs:
 
       - name: List template directory
         run: ls -lR template
-      
+
       - name: Download files to template directory
         run: |
-          # 定义变量
           REPO="${{ secrets.ORIGIN_NAME }}/wods"
           BRANCH="main"
           DIR="template"
           API_URL="https://api.github.com/repos/$REPO/contents/$DIR?ref=$BRANCH"
-
-          # 从 GitHub API 获取文件列表
           curl -s $API_URL | jq -r '.[] | select(.type=="file") | .download_url' | while read -r file_url; do
-            # 提取文件名并下载
             file_name=$(basename "$file_url")
             curl -L -o "template/$file_name" "$file_url"
           done
@@ -71,7 +67,7 @@ jobs:
         run: |
           find template -type f -name "*.txt" -print > template_files.txt
           cat template_files.txt
-          
+
       - name: Copy and Rename Template File
         run: |
           if [ -f "template/ACM_ip.txt" ]; then
@@ -85,18 +81,12 @@ jobs:
           while IFS= read -r file; do
             filename=$(basename "$file" .txt)
             echo "Processing file: $filename"
-            
-            # 获取URL内容
             url_content=$(curl -sSL "https://raw.githubusercontent.com/${{ github.actor }}/dszb/main/speedtest/ip/${filename}.ip")
-            
-            # 检查内容是否不为空且不是 "404: Not Found"
             if [[ -n "$url_content" && "$url_content" != "404: Not Found" ]]; then
               content=$(curl -sSL "https://raw.githubusercontent.com/${{ github.actor }}/dszb/main/speedtest/result/result_${filename}.txt" | awk '{print $2}')
-              
-              # 检查 result 文件的内容是否不为空且不是 "404: Not Found" 或 "Not"
               if [[ -n "$content" && "$content" != "404: Not Found" && "$content" != "Not" ]]; then
                 echo "$content" > "ip/${filename}.txt"
-                cat "ip/${filename}.txt"  # 输出文件内容以便调试
+                cat "ip/${filename}.txt"
               else
                 echo "Skipping file: $filename because content is empty or '404: Not Found'"
               fi
@@ -105,90 +95,32 @@ jobs:
             fi
           done < template_files.txt
 
-      - name: Configure Git
-        run: |
-          git config --global user.email "actions@github.com"
-          git config --global user.name "GitHub Actions"
-
-      - name: Commit and push IP changes
-        run: |
-          git add ip/*.txt
-          git add template/
-          git status
-          git commit -m "Update IP files" || echo "No changes to commit"
-          git pull origin main --rebase
-          git push
-        env:
-          PAT: ${{ secrets.GITHUBS_TOKEN }}
-
-  update_templates:
-    runs-on: ubuntu-latest
-    needs: collect_ips
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-
-      - name: Set Git Identity
-        run: |
-          git config --global user.email "actions@github.com"
-          git config --global user.name "GitHub Actions"
-
-      - name: Delete Result Folder
-        run: |
-          if [ -d "result/" ]; then
-            rm -rf result/
-            git rm -r --cached result/
-            git commit -m "Delete Result folder" || echo "No changes to commit"
-          else
-            echo "result/ directory not found, skipping deletion"
-          fi
-        env:
-          PAT: ${{ secrets.GITHUBS_TOKEN }}
-
-      - name: Create Result directory
-        run: mkdir -p result
-
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.0'  # 根据需求选择 PHP 版本
-
-      - name: List directory contents before execution
-        run: |
-          echo "Listing root directory"
-          ls -R
-          echo "Listing ip directory"
-          ls -R ip
-          echo "Listing template directory"
-          ls -R template
-          echo "Listing result directory (should be empty initially)"
-          ls -R result || echo "result directory is empty"
+          php-version: '8.0'
 
       - name: Download PHP Script
         run: |
           curl -o replace.php https://raw.githubusercontent.com/${{ secrets.ORIGIN_NAME }}/wods/main/replace.php
-      
+
       - name: Execute PHP script to merge files
         run: php replace.php
 
-      - name: List result directory contents after execution
+      - name: List result directory contents
         run: |
-          echo "Listing result directory after script execution"
+          echo "Listing result directory"
           ls -R result
           echo "Content of result/all.txt"
           cat result/all.txt
 
-      - name: Configure Git
+      - name: Commit and push IP and result changes
         run: |
-          git config --global user.name 'github-actions[bot]'
-          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-
-      - name: Commit and push result changes
-        run: |
-          git add .
+          git add ip/*.txt
+          git add template/
+          git add result/
           git status
-          git commit -m "Update result files" || echo "No changes to commit"
+          git commit -m "Update IP and result files" || echo "No changes to commit"
           git pull origin main --rebase
           git push
         env:
@@ -238,4 +170,4 @@ jobs:
             echo "replace.php file not found, skipping deletion"
           fi
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUBS_TOKEN }}
