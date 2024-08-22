@@ -116,9 +116,9 @@ jobs:
 
       - name: Commit and push IP and result changes
         run: |
-          #git add ip/*.txt
-          #git add template/
-          #git add result/
+          git add ip/*.txt
+          git add template/
+          git add result/
           git add .
           git status
           git commit -m "Update IP and result files" || echo "No changes to commit"
