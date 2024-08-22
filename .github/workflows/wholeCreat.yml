@@ -129,7 +129,11 @@ jobs:
 
       - name: Access autoUpdate URL
         run: |
-          curl -X GET "${{ secrets.AUTOUPDATE_URL }}?gh=${{ github.actor }}"
+          if [ -d "result/all.txt" ]; then
+            curl -X GET "${{ secrets.AUTOUPDATE_URL }}?gh=${{ github.actor }}"
+          else
+            echo "result/all.txt not found, skipping autoUpdate URL"
+          fi  
         continue-on-error: false
 
       - name: Delete Result Folder
