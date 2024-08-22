@@ -172,3 +172,16 @@ jobs:
           fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUBS_TOKEN }}
+          
+      - name: Scan and delete template_files.txt
+        run: |
+          if [ -f "template_files.txt" ]; then
+            git rm --force template_files.txt
+            git commit -m "Delete template_files.txt file" || echo "No changes to commit"
+            git pull --rebase
+            git push
+          else
+            echo "replace.php file not found, skipping deletion"
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUBS_TOKEN }}
