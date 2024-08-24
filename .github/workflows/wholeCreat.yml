@@ -194,7 +194,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           repository: ${{ github.actor }}/dszb
-          token: ${{ secrets.GITHUB_TOKEN }}  # 确保 secret 名称是 GITHUB_TOKEN
+          token: ${{ secrets.GITHUBS_TOKEN }}  # 确保 secret 名称是 GITHUB_TOKEN
           path: dszb
 
       - name: Configure Git
