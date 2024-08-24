@@ -190,7 +190,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUBS_TOKEN }}
 
-      - name: Trigger Project B Workflow
+      - name: Trigger DSZB Workflow
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUBS_TOKEN }}
         run: |
