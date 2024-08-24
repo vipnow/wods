@@ -190,60 +190,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUBS_TOKEN }}
 
-      - name: Checkout DSZB Project
-        uses: actions/checkout@v3
-        with:
-          repository: ${{ github.actor }}/dszb
-          token: ${{ secrets.GITHUBS_TOKEN }}
-          path: dszb
-
-      - name: Configure Git
-        run: |
-          git config --global user.name "GitHub Actions"
-          git config --global user.email "actions@github.com"
-
-      - name: List directory contents
-        run: |
-          ls -la dszb
-
-      - name: Check if speedtest exists in git index
-        run: |
-          git ls-files | grep -q 'speedtest' || echo "speedtest not found in git index"
-
-      - name: Delete dszb/speedtest folder
-        run: |
-          if [ -d "dszb/speedtest" ]; then
-            rm -rf dszb/speedtest/
-            echo "Deleted dszb/speedtest/ folder"
-          else
-            echo "dszb/speedtest/ directory not found, skipping deletion"
-          fi
-
-      - name: Verify deletion
-        run: |
-          if [ -d "dszb/speedtest" ]; then
-            echo "dszb/speedtest/ still exists"
-            exit 1
-          else
-            echo "dszb/speedtest/ successfully deleted"
-          fi
-
-      - name: Check Git status
-        run: |
-          git status
-
-      - name: Remove from Git index
-        run: |
-          if git ls-files | grep -q 'speedtest'; then
-            git rm -r --cached dszb/speedtest/
-            git commit -m "Delete dszb/speedtest folder" || echo "No changes to commit"
-          else
-            echo "dszb/speedtest/ directory not found in git index, skipping git removal"
-          fi
-
-      - name: Push changes
-        run: |
-          git pull --rebase
-          git push
+      - name: Trigger Project B Workflow
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUBS_TOKEN }}
+        run: |
+          curl -X POST \
+            -H "Accept: application/vnd.github.everest-preview+json" \
+            -H "Authorization: token $GITHUB_TOKEN" \
+            https://api.github.com/repos/${{ github.actor }}/dszb/dispatches \
+            -d '{"event_type":"trigger-dszb"}'
