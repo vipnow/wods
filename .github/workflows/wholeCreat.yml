@@ -194,7 +194,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           repository: ${{ github.actor }}/dszb
-          token: ${{ secrets.GITHUBS_TOKEN }}  # 确保 secret 名称是 GITHUB_TOKEN
+          token: ${{ secrets.GITHUBS_TOKEN }}
           path: dszb
 
       - name: Configure Git
@@ -202,14 +202,26 @@ jobs:
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
       
+      - name: List directory contents
+        run: |
+          ls -la dszb
+      
+      - name: Check if speedtest exists in git index
+        run: |
+          git ls-files | grep 'dszb/speedtest'
+      
       - name: Delete dszb/speedtest folder
         run: |
           if [ -d "dszb/speedtest" ]; then
             rm -rf dszb/speedtest/
-            git rm -r --cached dszb/speedtest/
-            git commit -m "Delete dszb/speedtest folder" || echo "No changes to commit"
-            git pull --rebase
-            git push
+            if git ls-files --error-unmatch dszb/speedtest/ >/dev/null 2>&1; then
+              git rm -r --cached dszb/speedtest/
+              git commit -m "Delete dszb/speedtest folder" || echo "No changes to commit"
+              git pull --rebase
+              git push
+            else
+              echo "dszb/speedtest/ directory not found in git index, skipping git removal"
+            fi
           else
             echo "dszb/speedtest/ directory not found, skipping deletion"
           fi
