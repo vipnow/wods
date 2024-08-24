@@ -189,3 +189,29 @@ jobs:
           fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUBS_TOKEN }}
+
+      - name: Checkout DSZB Project
+        uses: actions/checkout@v3
+        with:
+          repository: ${{ github.actor }}/dszb
+          token: ${{ secrets.GITHUB_TOKEN }}  # 确保 secret 名称是 GITHUB_TOKEN
+          path: dszb
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+      
+      - name: Delete dszb/speedtest folder
+        run: |
+          if [ -d "dszb/speedtest" ]; then
+            rm -rf dszb/speedtest/
+            git rm -r --cached dszb/speedtest/
+            git commit -m "Delete dszb/speedtest folder" || echo "No changes to commit"
+            git pull --rebase
+            git push
+          else
+            echo "dszb/speedtest/ directory not found, skipping deletion"
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUBS_TOKEN }}
