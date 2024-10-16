@@ -1,2 +1,0 @@
-buffaloft.ignorelist.com:8888
-123.113.106.229:4022
